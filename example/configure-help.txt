@@ -4,6 +4,7 @@ Command
         For automation scenarios or to set all available options, use the new `az config`.
 
 Arguments
+    --name --subscription -n -s  : Name or ID of subscription.
     --defaults -d      : Space-separated 'name=value' pairs for common argument defaults.
     --list-defaults -l : List all applicable defaults.  Allowed values: false, true.
     --scope            : Scope of defaults. Using "local" for settings only effective under current

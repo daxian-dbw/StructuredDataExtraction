@@ -1,13 +1,24 @@
 {
   "Options": [
     {
+      "Name": "--name",
+      "Alias": [
+        "--subscription "
+      ],
+      "Short": [
+        "-n ",
+        "-s "
+      ],
+      "Description": "Name or ID of subscription.",
+      "Arguments": null
+    },
+    {
       "Name": "--defaults",
       "Alias": null,
       "Short": [
         "-d "
       ],
-      "Attribute": "",
-      "Description": "Space-separated \u0027name=value\u0027 pairs for common argument defaults.",
+      "Description": "Space-separated 'name=value' pairs for common argument defaults.",
       "Arguments": null
     },
     {
@@ -16,7 +27,6 @@
       "Short": [
         "-l "
       ],
-      "Attribute": "",
       "Description": "List all applicable defaults.  Allowed values: false, true.",
       "Arguments": null
     },
@@ -24,8 +34,7 @@
       "Name": "--scope",
       "Alias": null,
       "Short": null,
-      "Attribute": "",
-      "Description": "Scope of defaults. Using \u0022local\u0022 for settings only effective under current folder.  Allowed values: global, local.  Default: global.",
+      "Description": "Scope of defaults. Using \"local\" for settings only effective under current folder.  Allowed values: global, local.  Default: global.",
       "Arguments": [
         "global",
         "local"
@@ -35,7 +44,6 @@
       "Name": "--debug",
       "Alias": null,
       "Short": null,
-      "Attribute": "",
       "Description": "Increase logging verbosity to show all debug logs.",
       "Arguments": null
     },
@@ -45,7 +53,6 @@
       "Short": [
         "-h "
       ],
-      "Attribute": "",
       "Description": "Show this help message and exit.",
       "Arguments": null
     },
@@ -53,7 +60,6 @@
       "Name": "--only-show-errors",
       "Alias": null,
       "Short": null,
-      "Attribute": "",
       "Description": "Only show errors, suppressing warnings.",
       "Arguments": null
     },
@@ -63,7 +69,6 @@
       "Short": [
         "-o "
       ],
-      "Attribute": "",
       "Description": "Output format.  Allowed values: json, jsonc, none, table, tsv, yaml, yamlc. Default: json.",
       "Arguments": [
         "json",
@@ -79,7 +84,6 @@
       "Name": "--query",
       "Alias": null,
       "Short": null,
-      "Attribute": "",
       "Description": "JMESPath query string. See http://jmespath.org/ for more information and examples.",
       "Arguments": null
     },
@@ -87,12 +91,10 @@
       "Name": "--verbose",
       "Alias": null,
       "Short": null,
-      "Attribute": "",
       "Description": "Increase logging verbosity. Use --debug for full debug logs.",
       "Arguments": null
     }
   ],
-  "Examples": null,
   "Name": "configure",
   "Description": "Manage Azure CLI configuration. This command is interactive."
 }

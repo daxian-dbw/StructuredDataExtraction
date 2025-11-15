@@ -170,7 +170,7 @@ public class GetStructuredDataCommand : PSCmdlet
         var messages = new List<ChatMessage>
         {
             new SystemChatMessage(systemPrompt),
-            new UserChatMessage($"Please extract information from the following text:\n\n{InputText}")
+            new UserChatMessage($"Extract information from the following text:\n\n{InputText}")
         };
 
         var chatCompletionOptions = new ChatCompletionOptions()

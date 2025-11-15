@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CLI Command Structure Schema",
+  "description": "A JSON schema for extracting structured information from CLI help content to enable tab-completion and command understanding. This schema defines how to parse command-line interface help text into a standardized format.",
+  "type": "object",
+  "required": ["Name", "Description", "Options"],
+  "properties": {
+    "Name": {
+      "type": "string",
+      "description": "The primary name of the CLI command (e.g., 'configure', 'login', 'deploy'). Extract this from the command line shown in the help text, typically found after 'az', 'kubectl', 'git', etc. Do not include the parent command prefix."
+    },
+    "Description": {
+      "type": "string",
+      "description": "A concise description of what the command does. This is usually found immediately after the command name in the help text, often following a colon (:). Include any important behavioral notes but keep it focused on the primary purpose."
+    },
+    "Options": {
+      "type": "array",
+      "description": "Array of all command-line options (flags and arguments) available for this command. Include both command-specific arguments and global/common arguments that apply to this command.",
+      "items": {
+        "$ref": "#/$defs/Option"
+      }
+    },
+    "Subcommands": {
+      "type": "array",
+      "description": "Optional array of subcommands if this command has nested subcommands. Extract these from help text sections that list available subcommands.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Name": {
+            "type": "string",
+            "description": "The subcommand name"
+          },
+          "Description": {
+            "type": "string",
+            "description": "Brief description of the subcommand"
+          }
+        },
+        "required": ["Name"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Option": {
+      "type": "object",
+      "description": "Represents a single command-line option with all its variants and metadata",
+      "required": ["Name", "Description"],
+      "properties": {
+        "Name": {
+          "type": "string",
+          "description": "The primary/canonical name of the option, always in long form with double dashes (e.g., '--output', '--help', '--list-defaults'). This should be the most complete form of the option name."
+        },
+        "Alias": {
+          "type": ["array", "null"],
+          "description": "Alternative long-form names for the same option (e.g., ['--subscription'] for an option that can also be called '--name'). These are typically other long-form variations, not short forms. Set to null if no aliases exist.",
+          "items": {
+            "type": "string",
+            "pattern": "^--[a-zA-Z0-9][a-zA-Z0-9-]*\\s*$"
+          }
+        },
+        "Short": {
+          "type": ["array", "null"],
+          "description": "Short form variants of the option using single dash (e.g., ['-o', '-h', '-n']). Extract all single-letter abbreviations for this option. Include the space after the short option if it's shown that way in the help text. Set to null if no short forms exist.",
+          "items": {
+            "type": "string",
+            "pattern": "^-[a-zA-Z]\\s*$"
+          }
+        },
+        "Description": {
+          "type": "string",
+          "description": "Complete description of what this option does, including any constraints, default values, or behavioral notes. Combine multiple lines if the description spans multiple lines in the help text. Include information about allowed values and defaults when mentioned."
+        },
+        "Arguments": {
+          "type": ["array", "null"],
+          "description": "Possible values this option can accept, extracted from 'Allowed values:', 'Valid values:', or 'Possible values:' sections in the description. For boolean flags that don't take arguments, set to null. For options that accept arbitrary strings/numbers, set to null unless specific values are enumerated.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
