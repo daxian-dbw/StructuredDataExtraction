@@ -130,7 +130,7 @@ public class SetAIEndpointCommand : PSCmdlet
 
         if (string.IsNullOrEmpty(BaseUrl))
         {
-            BaseUrl ??= "https://api.openai.com/v1";
+            BaseUrl = "https://api.openai.com/v1";
         }
         else if (!Uri.TryCreate(BaseUrl, UriKind.Absolute, out Uri validatedUri) ||
             (validatedUri.Scheme != Uri.UriSchemeHttp && validatedUri.Scheme != Uri.UriSchemeHttps))

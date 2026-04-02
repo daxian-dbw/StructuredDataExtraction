@@ -8,7 +8,7 @@ namespace llm_lib;
 
 public class StructuredDataConfig
 {
-    private const string GeneralSchemaName = "structured-date-extraction";
+    private const string GeneralSchemaName = "structured-data-extraction";
     private const string SchemaSystemPrompt = """
         You are an expert information extraction assistant that responds with JSON.
         Extract information from the provided text and structure it according to the specified JSON schema.
@@ -39,9 +39,7 @@ public class StructuredDataConfig
 
     internal static string CreateSchemaSystemPrompt(string prompt)
     {
-        return string.IsNullOrEmpty(prompt)
-            ? SchemaSystemPrompt
-            : string.Join("\n\n", SchemaSystemPrompt, prompt);
+        return string.IsNullOrEmpty(prompt) ? SchemaSystemPrompt : prompt;
     }
 
     internal static ChatResponseFormat CreateResponseFormatFromSchemaText(string schema, string name = null, string description = null)
@@ -54,15 +52,16 @@ public class StructuredDataConfig
 
     internal static ChatResponseFormat CreateResponseFormatFromSchemaFile(string path, string name = null, string description = null)
     {
+        using var stream = File.OpenRead(path);
         return ChatResponseFormat.CreateJsonSchemaFormat(
             name ?? GeneralSchemaName,
-            BinaryData.FromStream(File.OpenRead(path)),
+            BinaryData.FromStream(stream),
             description);
     }
 }
 
 [Cmdlet(VerbsCommon.Set, "StructuredDataConfig", DefaultParameterSetName = SchemaTextSet)]
-public class SetStructureDataConfigCommand : PSCmdlet
+public class SetStructuredDataConfigCommand : PSCmdlet
 {
     private const string SchemaTextSet = nameof(Schema);
     private const string SchemaFileSet = nameof(SchemaFile);
@@ -135,10 +134,17 @@ public class GetStructuredDataCommand : PSCmdlet
 
     protected override void BeginProcessing()
     {
-        var aiEndpoint = AIEndpoint.Singleton
-            ?? throw new InvalidOperationException("Please configure the AI endpoint using 'Set-AIEndpoint' command. Make srue you are using an OpenAI compatible endpoint.");
+        var aiEndpoint = AIEndpoint.Singleton;
+        if (string.IsNullOrEmpty(aiEndpoint.BaseUrl) || string.IsNullOrEmpty(aiEndpoint.Model) || aiEndpoint.ApiKey is null || aiEndpoint.ApiKey.Length == 0)
+        {
+            ThrowTerminatingError(new ErrorRecord(
+                new InvalidOperationException("AI endpoint not configured. Please call Set-AIEndpoint before using Get-StructuredData."),
+                "EndpointNotConfigured",
+                ErrorCategory.InvalidOperation,
+                null));
+        }
 
-        if (_timestamp < aiEndpoint.UpdateTimestamp)
+        if (_chatClient is null || _timestamp < aiEndpoint.UpdateTimestamp)
         {
             _timestamp = aiEndpoint.UpdateTimestamp;
             var oaiClient = new OpenAIClient(
@@ -175,7 +181,7 @@ public class GetStructuredDataCommand : PSCmdlet
 
         var chatCompletionOptions = new ChatCompletionOptions()
         {
-            Temperature = 0.5f,
+            Temperature = 0f,
             ResponseFormat = responseFormat,
         };
 
@@ -203,6 +209,10 @@ public class GetStructuredDataCommand : PSCmdlet
             }
         }
 
-        // todo: write error.
+        WriteError(new ErrorRecord(
+            new InvalidDataException("Failed to obtain valid JSON from the AI response after 3 attempts."),
+            "JsonExtractionFailed",
+            ErrorCategory.InvalidData,
+            InputText));
     }
 }

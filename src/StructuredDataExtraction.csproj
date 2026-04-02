@@ -11,7 +11,7 @@
     <GenerateDependencyFile>false</GenerateDependencyFile>
 
     <!-- Deploy the produced assembly -->
-    <PublishDir>out\StructuredDataExtraction</PublishDir>
+    <PublishDir>..\out\StructuredDataExtraction</PublishDir>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">

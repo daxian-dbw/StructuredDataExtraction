@@ -3,11 +3,11 @@
     {
       "Name": "--name",
       "Alias": [
-        "--subscription "
+        "--subscription"
       ],
       "Short": [
-        "-n ",
-        "-s "
+        "-n",
+        "-s"
       ],
       "Description": "Name or ID of subscription.",
       "Arguments": null
@@ -16,7 +16,7 @@
       "Name": "--defaults",
       "Alias": null,
       "Short": [
-        "-d "
+        "-d"
       ],
       "Description": "Space-separated 'name=value' pairs for common argument defaults.",
       "Arguments": null
@@ -25,7 +25,7 @@
       "Name": "--list-defaults",
       "Alias": null,
       "Short": [
-        "-l "
+        "-l"
       ],
       "Description": "List all applicable defaults.  Allowed values: false, true.",
       "Arguments": null
@@ -51,7 +51,7 @@
       "Name": "--help",
       "Alias": null,
       "Short": [
-        "-h "
+        "-h"
       ],
       "Description": "Show this help message and exit.",
       "Arguments": null
@@ -67,7 +67,7 @@
       "Name": "--output",
       "Alias": null,
       "Short": [
-        "-o "
+        "-o"
       ],
       "Description": "Output format.  Allowed values: json, jsonc, none, table, tsv, yaml, yamlc. Default: json.",
       "Arguments": [
@@ -94,7 +94,5 @@
       "Description": "Increase logging verbosity. Use --debug for full debug logs.",
       "Arguments": null
     }
-  ],
-  "Name": "configure",
-  "Description": "Manage Azure CLI configuration. This command is interactive."
+  ]
 }

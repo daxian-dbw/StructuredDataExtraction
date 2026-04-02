@@ -3,16 +3,8 @@
   "title": "CLI Command Structure Schema",
   "description": "A JSON schema for extracting structured information from CLI help content to enable tab-completion and command understanding. This schema defines how to parse command-line interface help text into a standardized format.",
   "type": "object",
-  "required": ["Name", "Description", "Options"],
+  "required": ["Options"],
   "properties": {
-    "Name": {
-      "type": "string",
-      "description": "The primary name of the CLI command (e.g., 'configure', 'login', 'deploy'). Extract this from the command line shown in the help text, typically found after 'az', 'kubectl', 'git', etc. Do not include the parent command prefix."
-    },
-    "Description": {
-      "type": "string",
-      "description": "A concise description of what the command does. This is usually found immediately after the command name in the help text, often following a colon (:). Include any important behavioral notes but keep it focused on the primary purpose."
-    },
     "Options": {
       "type": "array",
       "description": "Array of all command-line options (flags and arguments) available for this command. Include both command-specific arguments and global/common arguments that apply to this command.",
@@ -35,7 +27,7 @@
             "description": "Brief description of the subcommand"
           }
         },
-        "required": ["Name"],
+        "required": ["Name", "Description"],
         "additionalProperties": false
       }
     }
@@ -56,15 +48,15 @@
           "description": "Alternative long-form names for the same option (e.g., ['--subscription'] for an option that can also be called '--name'). These are typically other long-form variations, not short forms. Set to null if no aliases exist.",
           "items": {
             "type": "string",
-            "pattern": "^--[a-zA-Z0-9][a-zA-Z0-9-]*\\s*$"
+            "pattern": "^--[a-zA-Z0-9][a-zA-Z0-9-]*$"
           }
         },
         "Short": {
           "type": ["array", "null"],
-          "description": "Short form variants of the option using single dash (e.g., ['-o', '-h', '-n']). Extract all single-letter abbreviations for this option. Include the space after the short option if it's shown that way in the help text. Set to null if no short forms exist.",
+          "description": "Short form variants of the option using single dash (e.g., ['-o', '-h', '-n']). Extract all single-letter abbreviations for this option. Set to null if no short forms exist.",
           "items": {
             "type": "string",
-            "pattern": "^-[a-zA-Z]\\s*$"
+            "pattern": "^-(?:[a-zA-Z]|\\?)$"
           }
         },
         "Description": {
