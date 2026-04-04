@@ -23,9 +23,14 @@
   <ItemGroup>
     <PackageReference Include="OpenAI" Version="2.1.0" />
     <PackageReference Include="PowerShellStandard.Library" Version="5.1.1" PrivateAssets="All" />
-    <Content Include="StructuredDataExtraction.psd1">
+    <Content Include="../scripts/StructuredDataExtraction.psd1;../scripts/StructuredDataExtraction.psm1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="../scripts/CLIMetadataCompletion.psm1;../schema/cli-command-schema.json;../schema/cli-command-prompt.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <TargetPath>assets/%(Filename)%(Extension)</TargetPath>
     </Content>
   </ItemGroup>
 

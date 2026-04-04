@@ -8,6 +8,8 @@
 
 @{
 
+RootModule = 'StructuredDataExtraction.psm1'
+
 # Version number of this module.
 ModuleVersion = '0.0.1'
 
@@ -30,13 +32,13 @@ PowerShellVersion = '7.4.0'
 NestedModules = @('StructuredDataCommand.dll')
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @()
+FunctionsToExport = @('Invoke-CLIMetadataExtraction', 'New-CLICompleter')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @('Set-AIEndpoint', 'Get-AIEndpoint', 'Set-StructuredDataConfig', 'Get-StructuredData')
 
 # Variables to export from this module
-VariablesToExport = '*'
+VariablesToExport = @()
 
 # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
 AliasesToExport = @()
