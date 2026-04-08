@@ -9,11 +9,8 @@ function Get-HelpText {
         [string]   $Tool,
         [string[]] $SubcommandPath   # empty for the root command
     )
-    $helpArgs = if ($SubcommandPath.Count -gt 0) {
-        $SubcommandPath + '--help'
-    } else {
-        , '--help'
-    }
+
+    $helpArgs = $SubcommandPath.Count -gt 0 ? $SubcommandPath + '--help' : , '--help'
 
     # Capture both stdout and stderr; many tools write help to stderr
     $output = & $Tool @helpArgs 2>&1
@@ -250,7 +247,12 @@ function New-CLICompleter {
     }
 
     # Resolve MetadataDir to an absolute path so a relative path can be used safely.
-    $MetadataDir = $ExecutionContext.SessionState.Path.GetResolvedProviderPathFromPSPath($MetadataDir)
+    $provider = $null
+    $MetadataDir = $ExecutionContext.SessionState.Path.GetResolvedProviderPathFromPSPath($MetadataDir, [ref]$provider)
+
+    if ($provider.Name -ne 'FileSystem') {
+        throw "Metadata directory '$MetadataDir' is not on the file system. Only file system paths are supported."
+    }
 
     $cliName = Split-Path -Leaf $MetadataDir
     $targetFile = Join-Path $HOME '.pwsh' 'completions' "__$cliName.ps1"
@@ -264,4 +266,6 @@ Register-ArgumentCompleter -Native -CommandName $CliName -ScriptBlock $CliComple
 '@
     $cliMetadataModule = Join-Path $PSScriptRoot 'assets\CLIMetadataCompletion.psm1'
     Set-Content -Path $targetFile -Encoding UTF8 -Value ($content -f $cliName, $MetadataDir, $cliMetadataModule)
+
+    Write-Host "CLI completer script generated: $targetFile" -ForegroundColor Green
 }

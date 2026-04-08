@@ -56,7 +56,7 @@
           "description": "Short form variants of the option using single dash (e.g., ['-o', '-h', '-n']). Extract all single-letter abbreviations for this option. Set to null if no short forms exist.",
           "items": {
             "type": "string",
-            "pattern": "^-(?:[a-zA-Z]|\\?)$"
+            "pattern": "^-(?:[a-zA-Z][a-zA-Z0-9-]*|\\?)$"
           }
         },
         "Description": {
