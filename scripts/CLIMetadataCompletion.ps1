@@ -3,42 +3,44 @@
     Registers PowerShell tab completion for a CLI tool using pre-generated CLI metadata JSON files.
 
 .DESCRIPTION
-    Loads the JSON metadata files produced by Invoke-CLIMetadataExtraction and registers
-    an ArgumentCompleter for the target CLI tool that completes:
+    Loads the JSON metadata files produced by Invoke-CLIMetadataExtraction and prepare a script block
+    to be registered as an ArgumentCompleter for the target CLI tool that completes:
       - Subcommands at each level of the command hierarchy
       - Option names (long form, short form, and aliases) for each subcommand
       - Enumerated argument values for options that have a fixed set of allowed values
 
+    This script is intended to be dot-sourced within a dynamic completer module, e.g. completion-winget.
     The CLI tool name is inferred from the leaf folder name of $MetadataDir.
-    Import this module to register the completer. The metadata cache and metadata directory
-    are stored as module-scope variables and persist for the lifetime of the module.
+    The metadata cache and metadata directory are stored as module-scope variables and persist for the lifetime of the dynamic completer module.
 
+    This script is for enabling the 'PSNativeToolCompletion' module to deliver completions the first time the user presses Tab for an unregistered CLI command.
+    To register the completer and call the completer on user hitting the tab key for the first time, the 'PSNativeToolCompletion' module needs to retrieve the
+    completer script block and explicitly call it after the registration.
+
+    It looks for the completer script block by searching for 'Register-ArgumentCompleter' in the '__<cliName>.ps1' script,
+    so in this scenario, the '__<cliName>.ps1' needs to call 'Register-ArgumentCompleter' itself, and we need to make sure
+    the completer script block and related functions and variables are exported from this script so it can do so.
 .EXAMPLE
-    # Register completion for winget:
-    Import-Module .\scripts\Register-CLICompletion.psm1 -ArgumentList Q:\yard\del\winget
+    # Prepare completion registration for winget:
+    . .\scripts\CLIMetadataCompletion.ps1 -MetadataDir Q:\yard\del\winget
 #>
 
-# ---------------------------------------------------------------------------
-# Module parameters -- passed via -ArgumentList when importing.
-# ---------------------------------------------------------------------------
 param(
     [Parameter(Mandatory)]
     [string] $MetadataDir
 )
 
 # ---------------------------------------------------------------------------
-# Module-scope state -- persists for the lifetime of the loaded module.
-# No need for GetNewClosure(); the completer script block runs in module scope
-# and can access these variables directly via $script:.
+# Module-scope state -- persists for the lifetime of the dynamic module where this file is dot-sourced.
 # ---------------------------------------------------------------------------
 
-$script:MetadataDir = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($MetadataDir)
+$MetadataDir = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($MetadataDir)
 
 # The CLI tool name is the leaf folder name of the metadata directory (e.g. 'winget', 'az').
-$script:CliName = Split-Path $script:MetadataDir -Leaf
+$CliName = Split-Path $MetadataDir -Leaf
 
 # Keyed by "<baseDir>|<cmdPath joined by />"; populated lazily on first access.
-$script:MetaCache = @{}
+$MetaCache = @{}
 
 # ---------------------------------------------------------------------------
 # Helper functions (script scope -- visible to the completer block)
@@ -46,12 +48,12 @@ $script:MetaCache = @{}
 
 # Loads the *-cli.json metadata file for the given command folder path and returns the parsed object.
 # The expected file is named "<folder-leaf>-cli.json" inside $folderPath.
-# Results are stored in $script:MetaCache (keyed by $folderPath) so each file is read
+# Results are stored in $MetaCache (keyed by $folderPath) so each file is read
 # and parsed only once per session, regardless of how many times Tab is pressed.
 # Returns $null if the file does not exist or cannot be parsed.
 function LoadMeta([string]$folderPath) {
-    if ($script:MetaCache.ContainsKey($folderPath)) {
-        return $script:MetaCache[$folderPath]
+    if ($MetaCache.ContainsKey($folderPath)) {
+        return $MetaCache[$folderPath]
     }
 
     $name = Split-Path $folderPath -Leaf
@@ -62,7 +64,7 @@ function LoadMeta([string]$folderPath) {
             $result = Get-Content $file -Raw | ConvertFrom-Json
         } catch {}
     }
-    $script:MetaCache[$folderPath] = $result
+    $MetaCache[$folderPath] = $result
     return $result
 }
 
@@ -116,14 +118,14 @@ function CompleteArgValues($metadata, [string]$prevToken, [string]$prefix) {
 }
 
 # ---------------------------------------------------------------------------
-# Register the completer
+# Create the completer scriptblock that will be registered with Register-ArgumentCompleter
 # ---------------------------------------------------------------------------
 
-if (-not (Test-Path $script:MetadataDir)) {
-    throw "'$script:CliName' metadata not found at '$script:MetadataDir'. Tab completion will not be registered."
+if (-not (Test-Path $MetadataDir)) {
+    throw "'$CliName' metadata not found at '$MetadataDir'. Tab completion will not be registered."
 }
 
-[scriptblock]$script:CliCompleterBlock = {
+[scriptblock]$CliCompleterBlock = {
     param($wordToComplete, $commandAst, $cursorPosition)
 
     # All tokens after the root CLI command.
@@ -148,7 +150,7 @@ if (-not (Test-Path $script:MetadataDir)) {
 
     # Resolve the deepest metadata folder that actually exists by walking subcommand segments.
     # TestMeta only checks file existence — no file I/O or JSON parsing — so the loop is cheap.
-    $currentFolder = $script:MetadataDir
+    $currentFolder = $MetadataDir
     foreach ($seg in $subPath) {
         $nextFolder = Join-Path $currentFolder $seg
         if (TestMeta $nextFolder) {
@@ -186,10 +188,3 @@ if (-not (Test-Path $script:MetadataDir)) {
         }
     }
 }
-
-# Register the argument completer for the CLI command, and the user will be ready to go.
-Register-ArgumentCompleter -Native -CommandName $script:CliName -ScriptBlock $script:CliCompleterBlock
-Write-Verbose "$script:CliName tab completion registered (metadata: $script:MetadataDir)"
-
-# Keep helper functions and state variables private.
-Export-ModuleMember -Function @() -Variable @()

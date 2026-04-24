@@ -32,7 +32,7 @@ PowerShellVersion = '7.4.0'
 NestedModules = @('StructuredDataCommand.dll')
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('Invoke-CLIMetadataExtraction', 'New-CLICompleter')
+FunctionsToExport = @('Invoke-CLIMetadataExtraction', 'New-CLICompleter', 'Use-CLIMetadata')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @('Set-AIEndpoint', 'Get-AIEndpoint', 'Set-StructuredDataConfig', 'Get-StructuredData')

@@ -27,7 +27,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
-    <Content Include="../scripts/CLIMetadataCompletion.psm1;../schema/cli-command-schema.json;../schema/cli-command-prompt.md">
+    <Content Include="../scripts/CLIMetadataCompletion.ps1;../scripts/CLIMetadataCompletion.psm1;../schema/cli-command-schema.json;../schema/cli-command-prompt.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <TargetPath>assets/%(Filename)%(Extension)</TargetPath>

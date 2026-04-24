@@ -235,6 +235,36 @@ function Invoke-CLIMetadataExtraction {
     Write-Host "`nExtraction complete. Output: $(Join-Path $OutputDir $ToolName)" -ForegroundColor Green
 }
 
+
+<#
+.SYNOPSIS
+    Generates a CLI argument completer script for a tool's extracted metadata, which 
+    can then be consumed by the PowerShell module 'PSNativeToolCompletion' to provide
+    lazy registration of the argument completer for the CLI tool.
+
+.DESCRIPTION
+    Creates a PowerShell script in '$HOME\.pwsh\completions' that dot-sources
+    the CLIMetadataCompletion helper and registers a native argument completer
+    for the specified CLI tool. The script file is named '__<ToolName>.ps1'
+    and can be dot-sourced from a PowerShell profile to enable persistent
+    tab-completion.
+
+    The metadata directory must exist and must be a file system path.
+    The directory name is used as the CLI tool name.
+
+.PARAMETER MetadataDir
+    Path to the tool's metadata directory created by Invoke-CLIMetadataExtraction
+    (e.g., '.\metadata\winget'). The directory name becomes the tool name.
+
+.EXAMPLE
+    New-CLICompleter -MetadataDir .\metadata\winget
+    # Writes '$HOME\.pwsh\completions\__winget.ps1'
+
+.EXAMPLE
+    # Chain with extraction and immediately generate the completer
+    Invoke-CLIMetadataExtraction -ToolName git -OutputDir .\metadata
+    New-CLICompleter -MetadataDir .\metadata\git
+#>
 function New-CLICompleter {
     [CmdletBinding()]
     param (
@@ -258,14 +288,57 @@ function New-CLICompleter {
     $targetFile = Join-Path $HOME '.pwsh' 'completions' "__$cliName.ps1"
 
     $content = @'
-# Import the CLI metadata completion module for {0} in the local scope.
-Import-Module '{2}' -ArgumentList '{1}', $true -Scope Local
+# Dot-source the CLI metadata completion script for {0} in the dynamic module.
+. '{2}' -MetadataDir '{1}'
 
 # Register the argument completer for the {0} CLI using the loaded completer block.
 Register-ArgumentCompleter -Native -CommandName $CliName -ScriptBlock $CliCompleterBlock
 '@
-    $cliMetadataModule = Join-Path $PSScriptRoot 'assets\CLIMetadataCompletion.psm1'
-    Set-Content -Path $targetFile -Encoding UTF8 -Value ($content -f $cliName, $MetadataDir, $cliMetadataModule)
+    $cliMetadataScript = Join-Path $PSScriptRoot 'assets\CLIMetadataCompletion.ps1'
+    Set-Content -Path $targetFile -Encoding UTF8 -Value ($content -f $cliName, $MetadataDir, $cliMetadataScript)
 
     Write-Host "CLI completer script generated: $targetFile" -ForegroundColor Green
+}
+
+
+<#
+.SYNOPSIS
+    Registers a native argument completer for a CLI tool in the current session.
+
+.DESCRIPTION
+    Imports the CLIMetadataCompletion module with the specified metadata directory
+    and registers a native argument completer for the corresponding CLI tool.
+    The completer is active for the duration of the current PowerShell session.
+
+    To make completion persistent across sessions, use New-CLICompleter to
+    generate a script and dot-source it from your PowerShell profile instead.
+
+    The metadata directory must have been populated by Invoke-CLIMetadataExtraction.
+    The directory name is used as the CLI tool name.
+
+.PARAMETER MetadataDir
+    Path to the tool's metadata directory created by Invoke-CLIMetadataExtraction
+    (e.g., '.\metadata\winget'). The directory name becomes the tool name.
+
+.EXAMPLE
+    Use-CLIMetadata -MetadataDir .\metadata\winget
+    # Tab-completion for 'winget' is now active in this session.
+
+.EXAMPLE
+    # Extract and immediately enable completions in one step
+    Invoke-CLIMetadataExtraction -ToolName az -OutputDir .\metadata
+    Use-CLIMetadata -MetadataDir .\metadata\az
+#>
+function Use-CLIMetadata {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [string] $MetadataDir
+    )
+
+    $cliMetadataModule = Join-Path $PSScriptRoot 'assets\CLIMetadataCompletion.psm1'
+    Import-Module $cliMetadataModule -ArgumentList $MetadataDir -Global -Force -ErrorAction Stop
+
+    $cliName = Split-Path $MetadataDir -Leaf
+    Write-Host "Argument completer for '$cliName' is registered." -ForegroundColor Green
 }
