@@ -284,8 +284,27 @@ function New-CLICompleter {
         throw "Metadata directory '$MetadataDir' is not on the file system. Only file system paths are supported."
     }
 
+    $targetDir = Join-Path $HOME '.pwsh' 'completions'
     $cliName = Split-Path -Leaf $MetadataDir
-    $targetFile = Join-Path $HOME '.pwsh' 'completions' "__$cliName.ps1"
+    $targetFile = Join-Path $targetDir "__$cliName.ps1"
+
+    if (-not (Test-Path $targetDir)) {
+        $null = New-Item -Path $targetDir -ItemType Directory -Force
+    }
+
+    if (-not $MetadataDir.StartsWith($targetDir, [StringComparison]::OrdinalIgnoreCase)) {
+        $cliDir = Join-Path $targetDir $cliName
+        if (Test-Path $cliDir) {
+            Write-Host "Metadata directory '$cliDir' already exists. Deleting..." -NoNewline -ForegroundColor Yellow
+            Remove-Item -Path $cliDir -Recurse -Force -ErrorAction Stop
+            Write-Host " Done." -ForegroundColor Green
+        }
+
+        Write-Host "Copying metadata directory '$MetadataDir' into '$targetDir'..." -NoNewline -ForegroundColor Yellow
+        Copy-Item -Path $MetadataDir -Destination $targetDir -Recurse -Force -ErrorAction Stop
+        Write-Host " Done." -ForegroundColor Green
+        $MetadataDir = $cliDir
+    }
 
     $content = @'
 # Dot-source the CLI metadata completion script for {0} in the dynamic module.
