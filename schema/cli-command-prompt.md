@@ -121,7 +121,9 @@ Every `Subcommands` entry requires a `Description`. If a token appears to be a s
 
 **Ignore command alias sections entirely.** Some CLIs include a section explicitly labelled "The following command aliases are available:", "Aliases:", or similar, listing alternate invocation names for the *current* command (e.g. `add` as an alias for `winget install`). These are **not** subcommands — do not add any of those tokens to `Subcommands`. Only entries listed under a subcommand/commands heading, or indented blocks that represent *child* commands, should be recorded.
 
-Omit `Subcommands` entirely if the help text contains no subcommand listing of any kind.
+**Ignore help-topic sections entirely.** Some CLIs include sections that list documentation topics rather than executable subcommands — entries look identical (token + description) but only display a help page. Treat a section as a help-topic section when its heading contains words like "Help Topics", "Additional Help", "Reference Topics", "Learn", or "Documentation", or when its entries consistently use phrasing like "Learn about …", "Information about …", or "A comprehensive reference of …". Discard all such entries — do not add them to `Subcommands`.
+
+Omit `Subcommands` entirely if the help text contains no functional subcommand listing of any kind.
 
 ### 7. Do not include positional argument placeholders
 
@@ -152,6 +154,7 @@ Before emitting output, verify:
 - [ ] `Name` is the bare subcommand token with no leading dashes.
 - [ ] `Description` is a non-empty string taken verbatim from the help text — never fabricated.
 - [ ] Tokens from "command aliases" or "aliases" sections are not recorded as subcommands.
+- [ ] Tokens from "HELP TOPICS" or other identified help-topic sections are not recorded as subcommands — they are discarded entirely.
 
 **Output**
 - [ ] Output is valid JSON.
