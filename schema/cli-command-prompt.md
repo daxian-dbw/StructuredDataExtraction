@@ -46,6 +46,18 @@ No additional properties are allowed on either object type.
 
 ## Extraction Rules
 
+### 0. Recognize error output and non-help text
+
+Before extracting anything, check whether the output is valid help text. It is **not** valid if:
+- It contains an error diagnostic (`error:`, `unknown command`, `unrecognized subcommand`, `invalid option`, etc.).
+- It has only a brief `Usage:` synopsis and a suggestion like "try '--help'" — no option descriptions or subcommand listings.
+- It is very short (fewer than ~5 substantive lines) with no section headings or option descriptions.
+
+If invalid, return an empty extraction:
+```json
+{ "Options": [] }
+```
+
 ### 1. Collect options from all sections
 
 Help text may group options into labelled sections such as "Arguments", "Global Arguments", "Options", "Common Options", or similar. **Include options from every section** in the single flat `Options` array.
@@ -122,6 +134,8 @@ Every `Subcommands` entry requires a `Description`. If a token appears to be a s
 **Ignore command alias sections entirely.** Some CLIs include a section explicitly labelled "The following command aliases are available:", "Aliases:", or similar, listing alternate invocation names for the *current* command (e.g. `add` as an alias for `winget install`). These are **not** subcommands — do not add any of those tokens to `Subcommands`. Only entries listed under a subcommand/commands heading, or indented blocks that represent *child* commands, should be recorded.
 
 **Ignore help-topic sections entirely.** Some CLIs include sections that list documentation topics rather than executable subcommands — entries look identical (token + description) but only display a help page. Treat a section as a help-topic section when its heading contains words like "Help Topics", "Additional Help", "Reference Topics", "Learn", or "Documentation", or when its entries consistently use phrasing like "Learn about …", "Information about …", or "A comprehensive reference of …". Discard all such entries — do not add them to `Subcommands`.
+
+**Do not extract subcommands from `Usage:` synopsis lines.** In `Usage: tool sub [OPTIONS] <COMMAND>`, every token is either part of the already-invoked command path (`tool`, `sub`) or a positional placeholder (`<COMMAND>`) — none are discovered subcommands. Never add any token from a `Usage:` line to `Subcommands`.
 
 Omit `Subcommands` entirely if the help text contains no functional subcommand listing of any kind.
 

@@ -14,7 +14,11 @@ function Get-HelpText {
 
     # Capture both stdout and stderr; many tools write help to stderr
     $output = & $Tool @helpArgs 2>&1
-    return ($output | Out-String).Trim()
+    return @"
+# Help output from ``$Tool $($helpArgs -join ' ')``
+
+$(($output | Out-String).Trim())
+"@
 }
 
 function Get-OutputPath {
