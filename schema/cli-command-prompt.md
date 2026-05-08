@@ -107,13 +107,22 @@ A single logical option may appear on one or more lines. The flag tokens and des
 
 ### 4. Populate Arguments only for enumerated values
 
-- Scan `Description` for phrases like `Allowed values: a, b, c.` or `Valid values: x | y | z`.
+- Scan `Description` for phrases that introduce a finite set of accepted values. Common patterns include:
+  - Inline lists: `Allowed values: a, b, c`, `Valid values: x | y | z`, `Possible values: foo, bar`, `[possible values: yaml, toml]`.
+  - Labelled indented lists: A heading like `Available <noun>:` or `Supported <noun>:` followed by indented lines where each line starts with a token name (optionally followed by a description). Extract only the leading token from each line.
 - Extract the listed tokens as an array of strings.
 - If no such enumeration exists, set `Arguments` to `null`.
 - Do **not** add `Arguments` entries for values you infer or assume.
 
 **Example 1** — `Allowed values: json, jsonc, none, table` → `"Arguments": ["json", "jsonc", "none", "table"]`
 **Example 2** - `Allowed values are q[uiet], m[inimal], n[ormal], d[etailed]` → `"Arguments": ["quiet", "minimal", "normal", "detailed"]`
+**Example 3** — An indented list under `Available MCPs:`:
+```
+Available MCPs:
+  es-chat           ES Chat MCP server via HTTP proxy
+  msft-learn        Microsoft Learn MCP server via HTTP proxy
+```
+→ `"Arguments": ["es-chat", "msft-learn", ...]` (extract the first token from each indented line)
 
 ### 5. Merge multi-line descriptions
 
